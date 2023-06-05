@@ -121,23 +121,22 @@ def main():
 
     args = parser.parse_args()
     # Vamos a crompobar que es una direccion IP valida, si no lo es, cerramos
-    print(args.ip)
-    if not CheckIp(args.ip):
-        print("Ip no valida")
-        quit()
-    # Si la IP es correcta, continuamos
+     if  CheckIp(args.ip):
+        print("Ip  valida")
 
-    whoisIP(args.ip)
-    ReverseIp(args.ip)
-    if args.thor:
-        getThor(args.ip)
-    if args.shodan:
-        getShodan(args.ip)
-    if args.vt:
-        getVirusTotal(args.ip)
-    if args.geo:
-        getGeo(args.ip)
-
+        whoisIP(args.ip)
+        ReverseIp(args.ip)
+        if args.thor:
+            getThor(args.ip)
+        if args.shodan:
+            getShodan(args.ip)
+        if args.vt:
+            getVirusTotal(args.ip)
+        if args.geo:
+            getGeo(args.ip)
+  else:
+    print("ip no valida")
+    os.exit(-1) # no me acuerdo si es así para salir con un error
     print("Bye Bye")
 
 
