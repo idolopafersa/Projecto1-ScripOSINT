@@ -125,8 +125,9 @@ def main():
 
     args = parser.parse_args()
     # Vamos a crompobar que es una direccion IP valida, si no lo es, cerramos
-    print(args.ip)
-    if  CheckIp(args.ip):
+
+     if  CheckIp(args.ip):
+
         print("Ip  valida")
 
         whoisIP(args.ip)
@@ -142,6 +143,8 @@ def main():
     else:
         print("ip no valida")
         os.exit(-1)
+
+
 
     
 
