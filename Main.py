@@ -7,49 +7,52 @@ import socket
 import shodan
 import json
 
+keys = json.load(open('ApiKeys.json'))
+
 # Informacion Geolocalizacion usando ipapi
 
 
 def getVirusTotal(ip):
-    print("-------VirusTotal-------")
+    EscribirFichero("-------VirusTotal-------")
 
-    url = 'https://www.virustotal.com/vtapi/v2/ip-address/report'
+    url = f'https://www.virustotal.com/vtapi/v2/{ip}/report'
 
     params = {
-        'apikey': "", 'ip': ip}
+        'apikey': keys['ApiVirusTotal'], 'ip': ip}
 
     response = requests.get(url, params=params)
-
-    print(response.json())
-
+    
+    
+    
+    EscribirFichero(response)
+    
 
 def getGeo(ip):
-    print("-------GeoLocalizacion-------")
+    EscribirFichero("-------GeoLocalizacion-------")
     respuesta = requests.get(f'https://ipapi.co/{ip}/json/')
     if (respuesta.status_code == 200):
 
         salida = json.loads(respuesta.text)
         salida = {key: salida[key] for key in salida.keys(
         ) & {'city', 'region', 'country_name', 'postal', 'latitude', 'longitude'}}
-        print(salida)
+        EscribirFichero(salida)
     else:
-        print("Error al ingresar en ipapi")
-        quit()
+        EscribirFichero("Error al ingresar en ipapi")
 # Informacion Shodan
 
 
 def getShodan(ip):
-    print("-------Shodan-------")
+    EscribirFichero("-------Shodan-------")
     
     try:
-        api = shodan.Shodan("nGwt8szuS6px6qEL2ziiLrYww9ZQjtSU")
+        api = shodan.Shodan(keys['ApiShodan'])
         info = api.host(ip)
         return ("""
                 IP: {}
                 
                 """.format(ip))
     except shodan.exception.APIError as e:
-        print(('Error:')+' %s\n---------------------------------\n\n' % e)
+        EscribirFichero(('Error:')+' %s\n---------------------------------\n\n' % e)
         exit(0)
 
 
@@ -58,32 +61,32 @@ def getShodan(ip):
 
 def getThor(ip):
 
-    print("-------TorNode-------")
+    EscribirFichero("-------TorNode-------")
     IpLists = requests.get("https://check.torproject.org/torbulkexitlist")
     if ip in IpLists.text:
-        print("Its a Tor Node")
+        EscribirFichero("Its a Tor Node")
     else:
-        print("Is Not a Tor Node")
+        EscribirFichero("Is Not a Tor Node")
 
 
 # Metodo reverse IP
 
 
 def ReverseIp(ip):
-    print("-------ReverseIp-------")
+    EscribirFichero("-------ReverseIp-------")
     try:
         host = socket.gethostbyaddr(ip)
-        print(host)
+        EscribirFichero(host)
     except Exception as e:
-        print(e)
+        EscribirFichero(e)
         return None
 # Metodo Whois
 
 
 def whoisIP(ip):
-    print("-------WHOIS-------")
+    EscribirFichero('-------WHOIS-------')
     whois = os.system(f'whois {ip}')
-    print(f'Whois: {whois}')
+    EscribirFichero(f'Whois: {whois}')
 
 # Comprobamos que es una ip valida
 
@@ -96,11 +99,39 @@ def CheckIp(ip):
         return False
 
 
+def EscribirFichero(texto):
+    with open("output.txt", 'a') as f:
+        f.write(f'{texto}\n')
+
+
+def procesarip(ip,thor,shodan,vt,geo):
+    EscribirFichero(f'-----{ip}-----')
+    if CheckIp(ip):
+       
+        EscribirFichero('Ip  valida')
+
+        whoisIP(ip)
+        ReverseIp(ip)
+        if thor:
+            getThor(ip)
+        if shodan:
+            getShodan(ip)
+        if vt:
+            getVirusTotal(ip)
+        if geo:
+            getGeo(ip)
+    else:
+        EscribirFichero("ip no valida")
+        
+
+
 def main():
+    
+    
     parser = argparse.ArgumentParser(
         description='Program to search about an IP')
     parser.add_argument('-i', '--ip', help='Busca Solo una IP')
-
+    parser.add_argument('-l', '--list', help='Busca Una lista de IP')
     """
     whois y reverse ip siempre activos
 
@@ -119,27 +150,28 @@ def main():
                         help="Check VirusTotal information")
     parser.add_argument("-geo", "--geo", action="store_true",
                         help="Check localitation information")
+    
 
     args = parser.parse_args()
-    # Vamos a crompobar que es una direccion IP valida, si no lo es, cerramos
+   
 
-    if CheckIp(args.ip):
+    if args.ip:
+        ip = args.ip
+        procesarip(ip,args.thor,args.shodan,args.vt,args.geo)
 
-        print("Ip  valida")
-
-        whoisIP(args.ip)
-        ReverseIp(args.ip)
-        if args.thor:
-            getThor(args.ip)
-        if args.shodan:
-            getShodan(args.ip)
-        if args.vt:
-            getVirusTotal(args.ip)
-        if args.geo:
-            getGeo(args.ip)
+    elif args.list:
+        filename = args.list
+        with open(filename, 'r') as f:
+            for ip in f:
+                ip = ip.strip()
+                procesarip(ip,args.thor,args.shodan,args.vt,args.geo)
     else:
-        print("ip no valida")
-        os.exit(-1)
+        print("Error al ingresar parametro")
+
+
+
+
+    
 
 
 
