@@ -40,17 +40,14 @@ def getGeo(ip):
 
 def getShodan(ip):
     print("-------Shodan-------")
+    
     try:
-        api = shodan.Shodan("vH5QbMTwTyHLL55C4eFfrR2HSSvnoQTQ")
+        api = shodan.Shodan("nGwt8szuS6px6qEL2ziiLrYww9ZQjtSU")
         info = api.host(ip)
         return ("""
                 IP: {}
-                HOSTNAMES: {}
-                COUNTRYNAME: {}
-                PORTS: {}
-                ORGANIZATION: {}
-                OPERATINGSYSTEM: {}
-                """.format(ip, info.get('hostnames'), info.get('country_name'), info.get('ports'), info.get('org'), info.get('os')))
+                
+                """.format(ip))
     except shodan.exception.APIError as e:
         print(('Error:')+' %s\n---------------------------------\n\n' % e)
         exit(0)
@@ -126,7 +123,7 @@ def main():
     args = parser.parse_args()
     # Vamos a crompobar que es una direccion IP valida, si no lo es, cerramos
 
-     if  CheckIp(args.ip):
+    if CheckIp(args.ip):
 
         print("Ip  valida")
 
